@@ -14,8 +14,10 @@ import uvicorn
 from fastapi import FastAPI
 
 from urllib.parse import urlparse
-from waybackpy import WaybackMachineSaveAPI
 
+
+from waybackpy import WaybackMachineSaveAPI
+from waybackpy.exceptions import TooManyRequestsError
 
 MY_LOGGING_CONFIG = {
     'version': 1,
@@ -50,6 +52,10 @@ QUERIES = {
         "INSERT OR IGNORE INTO webpage "
         "([url], [wayback_url]) VALUES "
         "( :url, :wayback_url)"
+    ),
+    "update": (
+        "UPDATE webpage SET wayback_url = :wayback_url "
+        "WHERE url = :url"
     )
 }
 
@@ -77,17 +83,29 @@ def strip_url_scheme(url):
     return parsed.geturl().replace(scheme, '', 1)
 
 
-async def archive_webpage(url: str):
+async def save_url_to_db(url: str):
     url_stripped = strip_url_scheme(url)
+    logger.info("(save_url_to_db) => saving " + url_stripped + " to database")
 
-    logger.info("(archive_webpage) => submitting " + url_stripped + " to Archive.org ..")
+    db_curs = DB_CONN.cursor()
+    db_curs.execute(QUERIES['store'], (url_stripped, None))
+    DB_CONN.commit()
+
+    return url_stripped
+
+
+async def submit_to_internet_archive(url_stripped: str):
+    logger.info("(submit_to_internet_archive) => submitting " + url_stripped  + " to Archive.org ..")
     save_api = WaybackMachineSaveAPI(url_stripped, USER_AGENT)
     wayback_url: str = save_api.save()
 
+    logger.info("(submit_to_internet_archive) => saving ia url to db.. ")
     db_curs = DB_CONN.cursor()
-    db_curs.execute(QUERIES['store'], (url_stripped, wayback_url))
+    db_curs.execute(
+        QUERIES['update'], {"wayback_url": wayback_url,
+                            "url": url_stripped})
     DB_CONN.commit()
-    logger.info("(archive_webpage) => stored " + url_stripped)
+
     return wayback_url
 
 
@@ -129,13 +147,15 @@ async def read_url(url: str):
         return
 
     try:
-        wayback_url = await archive_webpage(url)
+        url_stripped = await save_url_to_db(url)
+        wayback_url = await submit_to_internet_archive(url_stripped)
+        # TODO: deal w/ updating database with wayback_url
         return {
             "status": "success",
             "wayback_url": wayback_url
         }
-    except Exception as e:
-        logger.info("(read_url) => Exception: " + str(e))
+    except TooManyRequestsError as e:
+        logger.info("(read_url) => TooManyRequestsError: " + str(e))
         return {
             "status": "error"
         }
