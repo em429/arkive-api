@@ -56,7 +56,10 @@ QUERIES = {
     "update": (
         "UPDATE webpage SET wayback_url = :wayback_url "
         "WHERE url = :url"
-    )
+    ),
+    "select": (
+        "SELECT * FROM webpage WHERE url = :url_stripped"
+    ),
 }
 
 DB_NAME: str = 'arkive.db'
@@ -81,6 +84,20 @@ def strip_url_scheme(url):
     parsed = urlparse(url)
     scheme = "%s://" % parsed.scheme
     return parsed.geturl().replace(scheme, '', 1)
+
+
+async def is_url_in_db(url: str):
+    url_stripped = strip_url_scheme(url)
+
+    db_curs = DB_CONN.cursor()
+    matched = db_curs.execute(QUERIES['select'], (url_stripped,)).fetchone()
+
+    if matched:
+        logger.info("(is_url_in_db) => " + url_stripped + " already in database")
+        return matched
+
+    logger.info("(is_url_in_db) => " + url_stripped + " not yet in database")
+    return False
 
 
 async def save_url_to_db(url: str):
@@ -120,15 +137,16 @@ async def is_path_url(url: str):
         requests.get(url)
         logger.info("(is_path_url) => True")
         return True
-    except ConnectionError as e:
-        logger.info("(is_path_url) => False with Exception  => " + str(e))
+    except ConnectionError:
+        logger.info("(is_path_url) => False")
         return False
     except MissingSchema:
         try:
             requests.get('http://' + url)
+            logger.info("(is_path_url) => True")
             return True
-        except ConnectionError as e:
-            logger.info("(is_path_url) => False with Exception  => " + str(e))
+        except ConnectionError:
+            logger.info("(is_path_url) => False")
             return False
 
 
@@ -143,8 +161,20 @@ async def read_root():
 @app.get("/{url:path}")
 async def read_url(url: str):
 
+    # Abort if 'url' turns out to be a path
     if not await is_path_url(url):
         return
+
+    check_db = await is_url_in_db(url)
+
+    # Abort if URL already in database with the requested archive provider's
+    # column filled out.
+    if check_db and check_db[2]:
+        return
+
+    # TODO: return if url is in database and has requested archive url
+    # if is_url_in_db(url) and :
+    #     return
 
     try:
         url_stripped = await save_url_to_db(url)
