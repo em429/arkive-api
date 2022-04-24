@@ -2,7 +2,7 @@
 
 A simple API to quickly and easily archive an url to multiple providers.
 
-## 0.0.1 PoC Milestone requirements:
+## 0.0.1 PoC requirements:
 - DONE ~user is able to submit a website by e.g. navigating to `arkive.ml/https://www.theonion.com/the-onion-guide-to-tipping-1848821007`~
 - DONE ~submitted urls are saved to an sqlite db with the original url and the archived url~
 - DONE ~API returns the archived url in a json response~
