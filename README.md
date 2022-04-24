@@ -6,7 +6,9 @@ A simple API to quickly and easily archive an url to multiple providers.
 
 To get the dev environment going, there are two options:
 
-### without Nix
+### Using poetry
+
+Make sure you have [poetry installed](https://python-poetry.org/docs/#installation)
 
 ```bash
 poetry install
@@ -19,7 +21,7 @@ For production deployments use `poetry run prod`, or run uvicorn directly, and a
 uvicorn arkive_api:app
 ```
 
-### with Nix
+### With Nix
 
 Arkive is also packaged as a Nix flake, so just run:
 
