@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "arkive-api"
+version = "0.0.1"
+description = ""
+authors = ["xamogast <mate@lambd.ax>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.75.2"
+uvicorn = {extras = ["standard"], version = "^0.17.6"}
+waybackpy = "^3.0.6"
+
+[tool.poetry.scripts]
+dev = "arkive_api.api:dev"
+prod = "arkive_api.api:prod"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
