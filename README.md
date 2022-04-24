@@ -18,7 +18,13 @@ poetry run dev
 For production deployments use `poetry run prod`, or run uvicorn directly, and add your desired options:
 
 ```bash
-uvicorn arkive_api:app
+uvicorn arkive_api:app --host 127.0.0.1 --port 3223
+```
+
+To access it on the internet, don't expose uvicorn but use a reverse proxy in front, e.g. with caddy:
+
+```Caddyfile
+reverse_proxy 127.0.0.1:3223
 ```
 
 ### With Nix
