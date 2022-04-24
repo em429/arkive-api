@@ -15,10 +15,10 @@ poetry install
 poetry run dev
 ```
 
-For production deployments use `poetry run prod`, or run uvicorn directly, and add your desired options:
+For production deployments use `poetry run prod`, or run uvicorn/hypercorn directly, and add your desired options:
 
 ```bash
-uvicorn arkive_api:app --host 127.0.0.1 --port 3223
+uvicorn arkive_api.api:app --host 127.0.0.1 --port 3223
 ```
 
 To access it on the internet, don't expose uvicorn but use a reverse proxy in front, e.g. with caddy:
@@ -29,7 +29,7 @@ reverse_proxy 127.0.0.1:3223
 
 ### With Nix
 
-Arkive is also packaged as a Nix flake, so just run:
+Arkive is also packaged as a Nix flake:
 
 ```bash
 nix build
@@ -46,7 +46,10 @@ Use `./results/bin/prod` in production.
 - DONE ~working archive.org provider implemented~
 
 
-## Planned features
+## Planned features and additions
 - TODO [#A] use [freeze-dry](https://github.com/WebMemex/freeze-dry) to save a single file copy of the page to `$freezedry_dir`
-- TODO first just store url, then add archive urls to record later
+- TODO store url to db as first step, add archive urls to record later
 - TODO add more providers
+- TODO embed annotations.js into the freeze-dried sites
+    - where to store annotations? writing it to the doc changes the hash
+

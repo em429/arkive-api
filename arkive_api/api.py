@@ -7,6 +7,7 @@ from sqlite3 import OperationalError
 
 import requests
 from requests.exceptions import ConnectionError
+from requests.exceptions import MissingSchema
 
 
 import uvicorn
@@ -42,7 +43,7 @@ logging.config.dictConfig(MY_LOGGING_CONFIG)
 logger = logging.getLogger('mylogger')
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 5.1; rv:40.0) Gecko/20100101 Firefox/40.0"
-IGNORED_URLS = [ 'favicon.ico' ]
+IGNORED_URLS = ['favicon.ico']
 
 QUERIES = {
     "store": (
@@ -84,10 +85,33 @@ async def archive_webpage(url: str):
     wayback_url: str = save_api.save()
 
     db_curs = DB_CONN.cursor()
-    db_curs.execute(QUERIES['store'], (url, wayback_url))
+    db_curs.execute(QUERIES['store'], (url_stripped, wayback_url))
     DB_CONN.commit()
     logger.info("(archive_webpage) => stored " + url_stripped)
     return wayback_url
+
+
+async def is_path_url(url: str):
+    """A Somewhat contrived way to check if path is an asset or an url."""
+    if url in IGNORED_URLS:
+        logger.info('(is_path_url) => ' + url + ' found in ignored list, skipping submit')
+        return False
+
+    try:
+        logger.info("(is_path_url) ? " + url)
+        requests.get(url)
+        logger.info("(is_path_url) => True")
+        return True
+    except ConnectionError as e:
+        logger.info("(is_path_url) => False with Exception  => " + str(e))
+        return False
+    except MissingSchema:
+        try:
+            requests.get('http://' + url)
+            return True
+        except ConnectionError as e:
+            logger.info("(is_path_url) => False with Exception  => " + str(e))
+            return False
 
 
 app = FastAPI()
@@ -96,21 +120,6 @@ app = FastAPI()
 @app.get("/")
 async def read_root():
     return {"status": "success"}
-
-
-async def is_path_url(url: str):
-    # if url in IGNORED_URLS:
-    #     logger.info('(is_path_url) => ' + url + ' found in ignored list, skipping submit')
-    #     return False
-
-    try:
-        logger.info("(is_path_url) ? " + url)
-        requests.get('http://' + url)
-        logger.info("(is_path_url) => True")
-        return True
-    except ConnectionError as e:
-        logger.info("(is_path_url) => False with Exception  => " + str(e))
-        return False
 
 
 @app.get("/{url:path}")
@@ -134,9 +143,9 @@ async def read_url(url: str):
 
 def dev():
     """Launched with `poetry run dev` at root level"""
-    uvicorn.run("arkive_api.api:app", host="0.0.0.0", port=3000, reload=True)
+    uvicorn.run("arkive_api.api:app", port=3000, reload=True)
 
 
 def prod():
     """Launched with `poetry run prod` at root level"""
-    uvicorn.run("arkive_api.api:app", host="0.0.0.0", port=3042, reload=False)
+    uvicorn.run("arkive_api.api:app", port=3042, reload=False)
