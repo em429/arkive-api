@@ -2,6 +2,34 @@
 
 A simple API to quickly and easily archive an url to multiple providers.
 
+## Getting started
+
+To get the dev environment going, there are two options:
+
+### without Nix
+
+```bash
+poetry install
+poetry run dev
+```
+
+For production deployments use `poetry run prod`, or run uvicorn directly, and add your desired options:
+
+```bash
+uvicorn arkive_api:app
+```
+
+### with Nix
+
+Arkive is also packaged as a Nix flake, so just run:
+
+```bash
+nix build
+./results/bin/dev
+```
+
+Use `./results/bin/prod` in production.
+
 ## 0.0.1 PoC requirements:
 - DONE ~user is able to submit a website by e.g. navigating to `arkive.ml/https://www.theonion.com/the-onion-guide-to-tipping-1848821007`~
 - DONE ~submitted urls are saved to an sqlite db with the original url and the archived url~
