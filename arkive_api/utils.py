@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 from requests import get
-from requests.exceptions import MissingSchema
+from requests.exceptions import ConnectionError, MissingSchema, InvalidSchema
 
 from .logging import logger
 
@@ -27,6 +27,9 @@ async def is_path_url(url: str):
         logger.info("(is_path_url) => True")
         return True
     except ConnectionError:
+        logger.info("(is_path_url) => False")
+        return False
+    except InvalidSchema:
         logger.info("(is_path_url) => False")
         return False
     except MissingSchema:

@@ -1,11 +1,6 @@
 #!python3
 
-import requests
-from requests.exceptions import ConnectionError
-from requests.exceptions import MissingSchema
-
 from waybackpy.exceptions import TooManyRequestsError
-
 
 import uvicorn
 from fastapi import FastAPI, Depends
