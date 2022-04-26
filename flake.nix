@@ -47,7 +47,7 @@
               # the final image, so no need to explicitly set contents property.
               config = {
                 Cmd = [
-                  "${pkgs.arkive-api}/bin/prod"
+                  "${pkgs.arkive-api}/bin/run"
                 ];
                 ExposedPorts = { "3042/tcp" = {}; };
               };
@@ -130,7 +130,7 @@
                         Type = "simple";
                         User = "arkive";
                         Group = "arkive";
-                        ExecStart = "${cfg.package}/bin/prod";
+                        ExecStart = "${cfg.package}/bin/run";
                       };
                     };
                   };
