@@ -79,7 +79,7 @@
 
                     commands = [
                       { package = pkgs.poetry; }
-                      { package = pkgs.pytest; }
+                      { package = pkgs.python3Packages.pytest; }
                       { package = pkgs.nixpkgs-fmt; }
                       { package = pkgs.black; }
                     ];
@@ -122,7 +122,7 @@
                       after = [ "network.target" ];
                       wantedBy = [ "multi-user.target" ];
                       environment = {
-                        DB_PATH = ${cfg.db_path};
+                        DB_PATH = cfg.db_path;
                       };
                       serviceConfig = {
                         Type = "simple";
