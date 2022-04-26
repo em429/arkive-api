@@ -1,12 +1,7 @@
 import sqlite3
-from sqlite3 import OperationalError
 
 from .logging import logger
 from .utils import strip_url_scheme
-
-
-# TODO: make it so that initializing database will auto create tables if they dont exist
-#      or not bother the database if it already does
 
       
 QUERIES = {
@@ -38,14 +33,19 @@ class Db:
     def __init__(self, db_name, schema_path):
         self.name: str = db_name
         self.conn = sqlite3.connect(db_name)
-        if self.schema_path:
-            try:
-                with open(self.schema_path) as schema:
-                    db_curs = self.conn.cursor()
-                    db_curs.executescript(schema.read())
-                    self.conn.commit()
-            except OperationalError as e:
-                logger.info("(create_tables) => " + str(e) + "\n")
+        self.schema = """
+            CREATE TABLE IF NOT EXISTS webpage (
+                [timestamp] DATE DEFAULT (datetime('now', 'utc')),
+                [url] TEXT UNIQUE NOT NULL,
+                [wayback_url] TEXT DEFAULT NULL
+                -- [original_title] TEXT NOT NULL,
+                -- [freeze_dried?] BOOLEAN NOT NULL CHECK (solo in (0, 1)),
+                -- [freezedry_path] TEXT DEFAULT NULL,
+            );
+        """
+        db_curs = self.conn.cursor()
+        db_curs.execute(self.schema)
+        self.conn.commit()
 
 
 async def is_url_in_db(url: str, db_conn):
