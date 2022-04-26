@@ -120,6 +120,10 @@
 
                     systemd.services.arkive-api = {
                       after = [ "network.target" ];
+                      wantedBy = [ "multi-user.target" ];
+                      environment = {
+                        DB_PATH = ${cfg.db_path};
+                      };
                       serviceConfig = {
                         Type = "simple";
                         User = "arkive";
