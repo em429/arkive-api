@@ -100,6 +100,7 @@
                   options = {
                     services.arkive-api = {
                       enable = lib.mkEnableOption "enables arkive-api service";
+                      # db_port = lib.mkOption {};
                       db_path = lib.mkOption {
                         type = lib.types.str;
                         example = "/data/arkive_db.sqlite";
@@ -122,7 +123,8 @@
                       after = [ "network.target" ];
                       wantedBy = [ "multi-user.target" ];
                       environment = {
-                        DB_PATH = cfg.db_path;
+                        ARKIVE_DB_PATH = cfg.db_path;
+                        # ARKIVE_DB_PORT = cfg.db_port;
                       };
                       serviceConfig = {
                         Type = "simple";
