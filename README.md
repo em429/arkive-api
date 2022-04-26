@@ -12,13 +12,7 @@ Make sure you have [poetry installed](https://python-poetry.org/docs/#installati
 
 ```bash
 poetry install
-poetry run dev
-```
-
-For production deployments use `poetry run prod`, or run uvicorn/hypercorn directly, and add your desired options:
-
-```bash
-uvicorn arkive_api.api:app --host 127.0.0.1 --port 3223
+poetry run run
 ```
 
 To access it on the internet, don't expose uvicorn but use a reverse proxy in front, e.g. with caddy:
@@ -33,12 +27,36 @@ Arkive is also packaged as a Nix flake:
 
 ```bash
 nix build
-./results/bin/dev
+./results/bin/run
 ```
 
-Use `./results/bin/prod` in production.
+## How to deploy
 
-### Development
+- set `ARKIVE_DB_PATH` to your sqlite database's path
+- change `ARKIVE_PORT` if desired
+
+
+### using Nix flakes:
+
+The nix package comes with a nixosModule which sets up a systemd service
+
+Add arkive-api to your flake inputs:
+
+```nix
+    arkive-api = {
+      url = "github:xamogast/arkive-api";
+    };
+```
+
+The module is at `inputs.arkive-api.nixosModule.x86_64-linux` (replace ending wwith your system) -- import this into your desired hosts, then enable the service, and set the path to the db:
+
+```nix
+services.arkive-api.enable = true;
+services.arkive-api.db_path = "/data/arkive.db";
+```
+
+
+## Development
 
 Install Nix, the package manager, then simply run `nix develop` to get a full dev environment.
 
@@ -52,8 +70,8 @@ Install Nix, the package manager, then simply run `nix develop` to get a full de
 
 
 ## Planned features and additions
+- DONE ~store url to db as first step, add archive urls to record later~
 - TODO [#A] use [freeze-dry](https://github.com/WebMemex/freeze-dry) to save a single file copy of the page to `$freezedry_dir`
-- TODO store url to db as first step, add archive urls to record later
 - TODO add more providers
 - TODO embed annotations.js into the freeze-dried sites
     - where to store annotations? writing it to the doc changes the hash
