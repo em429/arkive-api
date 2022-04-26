@@ -101,8 +101,8 @@
                     services.arkive-api = {
                       enable = lib.mkEnableOption "enables arkive-api service";
                       db_path = lib.mkOption {
-                        type = lib.types.path;
-                        example = /home/user/arkive_db.sqlite;
+                        type = lib.types.str;
+                        example = "/data/arkive_db.sqlite";
                         description = "Path to sqlite database";
                       };
                       package = lib.mkOption {
