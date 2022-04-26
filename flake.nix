@@ -47,7 +47,7 @@
               # the final image, so no need to explicitly set contents property.
               config = {
                 Cmd = [
-                  "${pkgs.arkive-api}/bin/prod"
+                  "${pkgs.arkive-api}/bin/run"
                 ];
                 ExposedPorts = { "3042/tcp" = {}; };
               };
@@ -79,7 +79,7 @@
 
                     commands = [
                       { package = pkgs.poetry; }
-                      { package = pkgs.pytest; }
+                      { package = pkgs.python3Packages.pytest; }
                       { package = pkgs.nixpkgs-fmt; }
                       { package = pkgs.black; }
                     ];
@@ -100,9 +100,10 @@
                   options = {
                     services.arkive-api = {
                       enable = lib.mkEnableOption "enables arkive-api service";
+                      # db_port = lib.mkOption {};
                       db_path = lib.mkOption {
-                        type = lib.types.path;
-                        example = /home/user/arkive_db.sqlite;
+                        type = lib.types.str;
+                        example = "/data/arkive_db.sqlite";
                         description = "Path to sqlite database";
                       };
                       package = lib.mkOption {
@@ -122,13 +123,14 @@
                       after = [ "network.target" ];
                       wantedBy = [ "multi-user.target" ];
                       environment = {
-                        DB_PATH = ${cfg.db_path};
+                        ARKIVE_DB_PATH = cfg.db_path;
+                        # ARKIVE_DB_PORT = cfg.db_port;
                       };
                       serviceConfig = {
                         Type = "simple";
                         User = "arkive";
                         Group = "arkive";
-                        ExecStart = "${cfg.package}/bin/prod";
+                        ExecStart = "${cfg.package}/bin/run";
                       };
                     };
                   };
