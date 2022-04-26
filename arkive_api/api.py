@@ -1,5 +1,7 @@
 #!python3
 
+from os import getenv
+
 from waybackpy.exceptions import TooManyRequestsError
 
 import uvicorn
@@ -13,7 +15,7 @@ from .archivers import submit_to_internet_archive
 
 
 async def get_db():
-    with Db("arkive.db", "db_schema.sql") as db:
+    with Db(getenv('ARKIVE_DB_PATH', "arkive.db"), "db_schema.sql") as db:
         yield db
 
 
@@ -40,7 +42,8 @@ async def read_url(url: str, db=Depends(get_db)):
         if check_db[2]:
             return {"status": "duplicate"}
         else:
-            logger.info("(read_url) => check_db => No archive url found though, so submitting..")
+            logger.info(
+                "(read_url) => check_db => No archive url found though, so submitting..")
 
     try:
         url_stripped = await save_url_to_db(url, db)
@@ -57,11 +60,11 @@ async def read_url(url: str, db=Depends(get_db)):
         }
 
 
-def dev():
+def run():
     """Launched with `poetry run dev` at root level"""
-    uvicorn.run("arkive_api.api:app", port=3000, reload=True)
-
-
-def prod():
-    """Launched with `poetry run prod` at root level"""
-    uvicorn.run("arkive_api.api:app", port=3042, reload=False)
+    reload = getenv("ARKIVE_RELOAD", 'False').lower() in ('true', '1', 't')
+    uvicorn.run(
+        "arkive_api.api:app",
+        port=getenv("ARKIVE_PORT", 3000),
+        reload=reload
+    )

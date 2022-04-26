@@ -12,8 +12,7 @@ fastapi = {version = "^0.75.2"}
 starlette = {version = "0.17.1", extras = ["all"]}
 
 [tool.poetry.scripts]
-dev = "arkive_api.api:dev"
-prod = "arkive_api.api:prod"
+run = "arkive_api.api:run"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
