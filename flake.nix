@@ -32,6 +32,8 @@
               overlays = [ self.overlay ];
             };
 
+            inherit (pkgs) config lib;
+
             ## Docker image
             #    nix build '.#image'
             #    The resulting image can be loaded directly:
@@ -88,8 +90,51 @@
               #   services.arkive-api.enable = true;
               #   services.arkive-api.db_path = /data/arkive.db
               #
-              nixosModules.arkive-api = import ./nixos;
-              nixosModule = self.nixosModules.arkive-api;
+
+              # nixosModule = import ./nixos;
+
+              nixosModule = { config, lib, pkgs, ... }: let
+                cfg = config.services.arkive-api;
+              in
+                {
+                  options = {
+                    services.arkive-api = {
+                      enable = lib.mkEnableOption "enables arkive-api service";
+                      db_path = lib.mkOption {
+                        type = lib.types.path;
+                        example = /home/user/arkive_db.sqlite;
+                        description = "Path to sqlite database";
+                      };
+                      package = lib.mkOption {
+                        type = lib.types.package;
+                        default = self.defaultPackage.x86_64-linux;
+                      };
+                    };
+                  };
+
+                  config = lib.mkIf cfg.enable {
+                    # nixpkgs = { inherit (pkgs) overlays; };
+                    users.users.arkive.isSystemUser = true;
+                    users.users.arkive.group = "arkive";
+                    users.groups.arkive = {};
+
+                    systemd.services.arkive-api = {
+                      after = [ "network.target" ];
+                      wantedBy = [ "multi-user.target" ];
+                      environment = {
+                        DB_PATH = ${cfg.db_path};
+                      };
+                      serviceConfig = {
+                        Type = "simple";
+                        User = "arkive";
+                        Group = "arkive";
+                        ExecStart = "${cfg.package}/bin/prod";
+                      };
+                    };
+                  };
+
+                };
+
 
             }
       )
