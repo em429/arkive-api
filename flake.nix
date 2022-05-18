@@ -11,7 +11,7 @@
     flake = false;
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix, devshell }:
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, devshell, flake-compat }:
     {
       # Nixpkgs overlay providing the application
       overlay = nixpkgs.lib.composeManyExtensions [
