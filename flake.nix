@@ -6,12 +6,15 @@
   inputs.poetry2nix.url = "github:nix-community/poetry2nix";
   inputs.devshell.url = "github:numtide/devshell";
 
-  inputs.flake-compat = {
-    url = "github:edolstra/flake-compat";
-    flake = false;
-  };
-
-  outputs = { self, nixpkgs, flake-utils, poetry2nix, devshell, flake-compat }:
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, devshell }:
+    let
+      # Import the desired systems from flake-utils instead of strings, to avoid typos
+      mySystems = with flake-utils.lib.system; [
+        x86_64-linux
+        x86_64-darwin
+        aarch64-linux
+      ];
+    in
     {
       # Nixpkgs overlay providing the application
       overlay = nixpkgs.lib.composeManyExtensions [
@@ -27,8 +30,13 @@
           }
         )
       ];
+      # NOTE: the '//' operator below is used to merge the two sets.
+      #       The overlay above is the same for all systems, but the rest of the
+      #       attributes we must define for each desired system; so we iterate over
+      #       them with 'eachSystem' below, then merge the results with the overlay.
     } // (
-      flake-utils.lib.eachDefaultSystem (
+      # flake-utils.lib.eachDefaultSystem (
+      flake-utils.lib.eachSystem mySystems (
         system:
         let
           pkgs = import nixpkgs {
@@ -141,8 +149,6 @@
               };
 
             };
-
-
         }
       )
     );
