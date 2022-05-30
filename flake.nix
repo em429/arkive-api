@@ -121,7 +121,7 @@
                   };
                   package = lib.mkOption {
                     type = lib.types.package;
-                    default = self.defaultPackage.x86_64-linux;
+                    default = self.defaultPackage.${system};
                   };
                 };
               };
