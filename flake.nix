@@ -128,9 +128,12 @@
 
               config = lib.mkIf cfg.enable {
                 # nixpkgs = { inherit (pkgs) overlays; };
-                users.users.arkive.isSystemUser = true;
-                users.users.arkive.group = "arkive";
-                users.groups.arkive = { };
+                users.users.arkive = {
+                  isSystemUser = true;
+                  group = "arkive";
+                  uid = 1024;
+                };
+                users.groups.arkive = { gid = 1024; };
 
                 systemd.services.arkive-api = {
                   after = [ "network.target" ];
